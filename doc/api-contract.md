@@ -1,19 +1,18 @@
 # 基幹APIの利用契約
 
-更新日：2026-10-03。OpenAPI本体・SDKは未生成。
+基幹リポジトリの`contracts/openapi/backyard.yaml`と`admin.yaml`を利用する。版付きbundleと生成器設定からそれぞれDart Dio SDKを生成し、取得版・ハッシュを固定する。
 
-提供側の予定位置は`recycle-gang/contracts/openapi/backyard.yaml`。本アプリはその版付きbundleと生成器設定からSDKを生成する。提供側YAMLの独自コピーを編集して分岐させない。
+| 項目 | 業者 | 管理者 |
+|---|---|---|
+| APIパス | `/api/backyard/v1/...` | `/api/admin/v1/...` |
+| SDK | `flutter/packages/backyard_api/` | `flutter/packages/admin_api/` |
+| 認可 | 所属業者・担当作業 | 操作権限・対象範囲 |
+| 経路 | 採用済み経路の取得 | 計算要求・候補照会・採用 |
 
-| 項目 | 方針 |
-|---|---|
-| 接続先 | 環境別の安定API URL＋`/api/backyard/v1/...` |
-| 対応の管理 | 使用契約版/ハッシュ、必要機能、試験済みBE版、公開中アプリ版を区別 |
-| 認可 | 業者所属・担当作業・運営権限をBEで検証 |
-| データ取得 | 採用済み経路と担当回収をBEから取得。optimizerへ直接接続しない |
-| 更新 | 成果記録/SOS/オファー応答をBEへ要求。DBへ直接接続しない |
-| 再送 | 通信失敗時の再試行は契約の冪等性仕様に従う。二重実績を作らない |
-| 更新の競合 | 状態/版の競合を表示し再取得する。古い画面で無条件上書きしない |
+環境別の安定URLをCloudFrontへ向ける。サーバー実装版専用のURLに固定しない。ログイン資格情報とAPI権限は基幹が検証する。API契約を分けるだけでアクセス制御が成立するとは扱わない。
 
-サーバー実装版への固定URLを持たない。BEが互換更新されれば同じアプリが接続を継続できる。SDK更新時は契約差分と旧版互換を確認する。
+管理者の計算要求・採用要求には`Idempotency-Key`を送る。同じ操作の再送では同じキーと入力を使い、新しい操作には新しいキーを割り当てる。競合時はデータを再取得する。二重回収実績・二重採用を画面の連打防止だけに依存させない。
 
-仕様の正：[API契約・生成方針](https://github.com/ShuzoShinagawa1102/recycle-gang/blob/main/doc/architecture/backend/api-contract-policy.md)。
+SDK更新時は契約差分、権限境界、旧版互換性を確認する。使用契約版、必要機能、試験したBE版、公開中アプリ版を別々に記録する。
+
+[契約の正](https://github.com/ShuzoShinagawa1102/recycle-gang/blob/develop/v1/doc/architecture/backend/api-contract-policy.md)、[計算と採用のAPI](https://github.com/ShuzoShinagawa1102/recycle-gang/blob/develop/v1/doc/architecture/backend/optimizer-contract.md)
